@@ -11,7 +11,7 @@
 	content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <link rel="manifest" th:href="@{/css/manifest.json}"
 	crossorigin="use-credentials">
-<meta name="application-name" content="WebPortal">
+<meta name="application-name" content="就活Portal">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="就活Portal">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -75,6 +75,38 @@
 						<div class="input-group" id="input-group">
 							<button type="submit" class="btn btn-primary">報告する</button>
 						</div>
+					</form>
+				</div>
+			</div>
+
+			<div class="col-sm-6">
+				<div class="content-box">
+					<h2>証明書発行</h2>
+					<form method="post" th:action="@{/report}">
+						<div class="input-group" id="input-group">
+							<button type="submit" class="btn btn-primary">発行画面へ</button>
+						</div>
+					</form>
+				</div>
+			</div>
+
+			<div class="col-sm-6">
+				<div class="content-box">
+					<h2>受験報告</h2>
+					<form method="post" th:action="@{/report}">
+						<div class="input-group" id="input-group">
+							<button type="submit" class="btn btn-primary">報告する</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			
+			<div class="col-sm-6" role="presentation" sec:authorize="hasRole('ADMIN)">
+			<!-- 管理者のみのコンテンツ -->
+				<div class="content-box">
+					<h2>ユーザ管理</h2>
+					<form method="get" th:action="@{/user/list}">
+						<button type="submit" class="btn btn-success">ユーザ管理へ</button>
 					</form>
 				</div>
 			</div>
