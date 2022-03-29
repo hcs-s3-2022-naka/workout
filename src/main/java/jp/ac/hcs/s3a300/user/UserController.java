@@ -15,8 +15,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-import jp.ac.hcs.paqy_card.user.UserFormForUpdate;
-import jp.ac.hcs.paqy_card.user.UserStatus;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j

@@ -27,7 +27,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	}
 
 	/** ユーザーIDとパスワードとアカウントの有効性を取得するSQL */
-	private static final String USER_SQL = "SELECT user_id, encrypted_password as password, enabled FROM m_user WHERE user_id = ?";
+	private static final String USER_SQL = "SELECT user_id, encrypted_password as password, true FROM m_user WHERE user_id = ?";
 
 	/** ユーザーIDと権限を取得するSQL */
 	private static final String ROLE_SQL = "SELECT user_id, role FROM m_user WHERE user_id = ?";

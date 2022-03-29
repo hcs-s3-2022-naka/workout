@@ -23,19 +23,13 @@ public class UserRepository {
 	private static final String SQL_SELECT_ONE = "SELECT * FROM m_user WHERE user_id = ?";
 
 	/** SQL 1件追加 */
-	private static final String SQL_INSERT_ONE = "INSERT INTO m_user(user_id, encrypted_password, user_name, darkmode, role) VALUES(?, ?, ?, ?, ?)";
+	private static final String SQL_INSERT_ONE = "INSERT INTO m_user(user_id, encrypted_password, class_number, user_name, darkmode, role) VALUES(?, ?, ?, ?, ?, ?)";
 
 	/** SQL 1件更新 管理者 パスワード更新有 */
-	private static final String SQL_UPDATE_ONE_WITH_PASSWORD = "UPDATE m_user SET encrypted_password = ?, user_name = ?, role = ? WHERE user_id = ?";
+	private static final String SQL_UPDATE_ONE_WITH_PASSWORD = "UPDATE m_user SET encrypted_password = ?, class_number = ?, user_name = ?, role = ?, user_status = ?, password_error_count = ? WHERE user_id = ?";
 
 	/** SQL 1件更新 管理者 パスワード更新無 */
-	private static final String SQL_UPDATE_ONE = "UPDATE m_user SET user_name = ?, role = ? WHERE user_id = ?";
-
-	/** SQL 1件更新 一般ユーザ パスワード更新有 */
-	private static final String SQL_UPDATE_GENERAL_WITH_PASSWORD = "UPDATE m_user SET encrypted_password = ?, user_name = ?, darkmode = ? WHERE user_id = ?";
-
-	/** SQL 1件更新 一般ユーザ パスワード更新無 */
-	private static final String SQL_UPDATE_GENERAL = "UPDATE m_user SET user_name = ?, darkmode = ? WHERE user_id = ?";
+	private static final String SQL_UPDATE_ONE = "UPDATE m_user SET class_number = ?, user_name = ?, role = ?, user_status = ?, password_error_count = ? WHERE user_id = ?";
 
 	/** SQL 1件削除 */
 	private static final String SQL_DELETE_ONE = "DELETE FROM m_user WHERE user_id = ?";
@@ -48,27 +42,13 @@ public class UserRepository {
 
 	/**
 	 * Userテーブルから全データを取得.
-	 * @return UserEntity
-	 * @throws DataAccessException
+	 * @return UserEntity
+	 * @throws DataAccessException データアクセス時の例外をthrowする
 	 */
 	public UserEntity selectAll() throws DataAccessException {
 		List<Map<String, Object>> resultList = jdbc.queryForList(SQL_SELECT_ALL);
 		UserEntity userEntity = mappingSelectResult(resultList);
 		return userEntity;
-	}
-
-	/**
-	 * UserテーブルからユーザIDをキーにデータを1件を取得.
-	 * @param user_id 検索するユーザID
-	 * @return UserEntity
-	 * @throws DataAccessException
-	 */
-	public UserData selectOne(String user_id) throws DataAccessException {
-		List<Map<String, Object>> resultList = jdbc.queryForList(SQL_SELECT_ONE, user_id);
-		UserEntity entity = mappingSelectResult(resultList);
-		// 必ず1件のみのため、最初のUserDataを取り出す
-		UserData data = entity.getUserlist().get(0);
-		return data;
 	}
 
 	/**
@@ -82,10 +62,13 @@ public class UserRepository {
 		for (Map<String, Object> map : resultList) {
 			UserData data = new UserData();
 			data.setUser_id((String) map.get("user_id"));
+			data.setClass_number((String)map.get("class_number"));
 			data.setUser_name((String) map.get("user_name"));
 			data.setDarkmode((boolean) map.get("darkmode"));
 			data.setRole((String) map.get("role"));
-			data.setEnabled((boolean) map.get("enabled"));
+			data.setUser_status((int) map.get("user_status"));
+			data.setPassword_error_count((int) map.get("password_error_count"));
+
 			entity.getUserlist().add(data);
 		}
 		return entity;
@@ -95,12 +78,13 @@ public class UserRepository {
 	 * Userテーブルにデータを1件追加する.
 	 * @param data 追加するユーザ情報
 	 * @return 追加データ数
-	 * @throws DataAccessException
+	 * @throws DataAccessException データアクセス時の例外をthrowする
 	 */
 	public int insertOne(UserData data) throws DataAccessException {
 		int rowNumber = jdbc.update(SQL_INSERT_ONE,
 				data.getUser_id(),
 				passwordEncoder.encode(data.getPassword()),
+				data.getClass_number(),
 				data.getUser_name(),
 				data.isDarkmode(),
 				data.getRole());
@@ -108,59 +92,50 @@ public class UserRepository {
 	}
 
 	/**
-	 * (管理用)Userテーブルのデータを1件更新する(パスワード更新有).
-	 * @param data 更新するユーザ情報
-	 * @return 更新データ数
-	 * @throws DataAccessException
+	 * UserテーブルからユーザIDをキーにデータを1件を取得.
+	 * @param user_id 検索するユーザID
+	 * @return UserEntity
+	 * @throws DataAccessException データアクセス時の例外をthrowする
 	 */
-	public int updateOneWithPassword(UserData data) throws DataAccessException {
-		int rowNumber = jdbc.update(SQL_UPDATE_ONE_WITH_PASSWORD,
-				passwordEncoder.encode(data.getPassword()),
-				data.getUser_name(),
-				data.getRole(),
-				data.getUser_id());
-		return rowNumber;
+	public UserData selectOne(String user_id) throws DataAccessException {
+		List<Map<String, Object>> resultList = jdbc.queryForList(SQL_SELECT_ONE, user_id);
+		UserEntity entity = mappingSelectResult(resultList);
+		// 必ず1件のみのため、最初のUserDataを取り出す
+		UserData data = entity.getUserlist().get(0);
+		return data;
 	}
 
 	/**
-	 * (管理用)Userテーブルのデータを1件更新する(パスワード更新無).
-	 * @param data 更新するユーザ情報
+	 * (管理用)Userテーブルのデータを1件更新する(パスワード更新有).
+	 * @param userData 更新するユーザ情報
 	 * @return 更新データ数
-	 * @throws DataAccessException
+	 * @throws DataAccessException データアクセス時の例外をthrowする
 	 */
-	public int updateOne(UserData userData) throws DataAccessException {
-		int rowNumber = jdbc.update(SQL_UPDATE_ONE,
+	public int updateOneWithPassword(UserData userData) throws DataAccessException {
+		int rowNumber = jdbc.update(SQL_UPDATE_ONE_WITH_PASSWORD,
+				passwordEncoder.encode(userData.getPassword()),
+				userData.getClass_number(),
 				userData.getUser_name(),
 				userData.getRole(),
+				userData.getUser_status(),
+				userData.getPassword_error_count(),
 				userData.getUser_id());
 		return rowNumber;
 	}
 
 	/**
-	 * (一般用)Userテーブルのデータを1件更新する(パスワード更新有).
-	 * @param data 更新するユーザ情報
+	 * (管理用)Userテーブルのデータを1件更新する(パスワード更新無).
+	 * @param userData 更新するユーザ情報
 	 * @return 更新データ数
-	 * @throws DataAccessException
+	 * @throws DataAccessException データアクセス時の例外をthrowする
 	 */
-	public int updateGeneralWithPassword(UserData data) throws DataAccessException {
-		int rowNumber = jdbc.update(SQL_UPDATE_GENERAL_WITH_PASSWORD,
-				passwordEncoder.encode(data.getPassword()),
-				data.getUser_name(),
-				data.isDarkmode(),
-				data.getUser_id());
-		return rowNumber;
-	}
-
-	/**
-	 * (一般用)Userテーブルのデータを1件更新する(パスワード更新無).
-	 * @param data 更新するユーザ情報
-	 * @return 更新データ数
-	 * @throws DataAccessException
-	 */
-	public int updateGeneral(UserData userData) throws DataAccessException {
-		int rowNumber = jdbc.update(SQL_UPDATE_GENERAL,
+	public int updateOne(UserData userData) throws DataAccessException {
+		int rowNumber = jdbc.update(SQL_UPDATE_ONE,
+				userData.getClass_number(),
 				userData.getUser_name(),
-				userData.isDarkmode(),
+				userData.getRole(),
+				userData.getUser_status(),
+				userData.getPassword_error_count(),
 				userData.getUser_id());
 		return rowNumber;
 	}
@@ -169,7 +144,7 @@ public class UserRepository {
 	 * Userテーブルのデータを1件削除する.
 	 * @param user_id 削除するユーザID
 	 * @return 削除データ数
-	 * @throws DataAccessException
+	 * @throws DataAccessException データアクセス時の例外をthrowする
 	 */
 	public int deleteOne(String user_id) throws DataAccessException {
 		int rowNumber = jdbc.update(SQL_DELETE_ONE, user_id);
