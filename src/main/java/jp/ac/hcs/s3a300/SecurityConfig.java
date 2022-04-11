@@ -1,4 +1,4 @@
-package jp.ac.hcs.s3a300.main;
+package jp.ac.hcs.s3a300;
 
 import javax.sql.DataSource;
 
